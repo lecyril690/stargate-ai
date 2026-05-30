@@ -1,55 +1,83 @@
-import { useState } from "react"
+import { useState } from "react";
 
 export default function StargateAIInterface() {
   const [messages, setMessages] = useState([
     { role: "ai", text: "Stargate Core initialisé." }
-  ])
-  const [input, setInput] = useState("")
+  ]);
 
-async function send() {
-  if (!input) return
+  const [input, setInput] = useState("");
 
-  const userMessage = input
+  async function send() {
+    if (!input.trim()) return;
 
-  setMessages(prev => [
-    ...prev,
-    { role: "user", text: userMessage }
-  ])
+    const userMessage = input;
 
-  setInput("")
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", text: userMessage }
+    ]);
 
-  const res = await fetch("https://stargate-backend-ynld.onrender.com/chat", {", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      text: userMessage,
-    }),
-  })
+    setInput("");
 
-  const data = await res.json()
+    try {
+      const res = await fetch(
+        "https://stargate-backend-ynld.onrender.com/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            text: userMessage
+          })
+        }
+      );
 
-  setMessages(prev => [
-    ...prev,
-    { role: "ai", text: data.reply }
-  ])
-}
+      const data = await res.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          text: data.reply || "Aucune réponse reçue."
+        }
+      ]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          text: "Erreur de connexion au serveur."
+        }
+      ]);
+
+      console.error(error);
+    }
+  }
 
   return (
-    <div style={{
-      height: "100vh",
-      background: "black",
-      color: "cyan",
-      fontFamily: "monospace",
-      padding: 20
-    }}>
+    <div
+      style={{
+        height: "100vh",
+        background: "black",
+        color: "cyan",
+        fontFamily: "monospace",
+        padding: 20
+      }}
+    >
       <h1>STARGATE AI CORE</h1>
 
-      <div style={{ height: "70vh", overflow: "auto", border: "1px solid cyan", padding: 10 }}>
+      <div
+        style={{
+          height: "70vh",
+          overflow: "auto",
+          border: "1px solid cyan",
+          padding: 10
+        }}
+      >
         {messages.map((m, i) => (
           <div key={i} style={{ margin: "10px 0" }}>
-            <b>{m.role}:</b> {m.text}
+            <b>{m.role} :</b> {m.text}
           </div>
         ))}
       </div>
@@ -60,8 +88,9 @@ async function send() {
           onChange={(e) => setInput(e.target.value)}
           style={{ width: "80%" }}
         />
+
         <button onClick={send}>SEND</button>
       </div>
     </div>
-  )
+  );
 }
