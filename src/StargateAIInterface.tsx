@@ -18,7 +18,7 @@ async function send() {
 
   setInput("")
 
-  const res = await fetch("https://stargate-backend-ynld.onrender.com", {
+  const res = await fetch("https://stargate-backend-ynld.onrender.com/chat", {", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

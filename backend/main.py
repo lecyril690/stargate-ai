@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import requests
+import os
 
 app = FastAPI()
 
@@ -16,26 +17,35 @@ app.add_middleware(
 class Message(BaseModel):
     text: str
 
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
 @app.post("/chat")
 def chat(msg: Message):
 
     response = requests.post(
-        "http://127.0.0.1:11434/api/generate",
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json"
+        },
         json={
-            "model": "llama3",
-            "prompt": f'''
-Tu es une IA Stargate futuriste.
-Réponds comme une entité intelligente.
-
-Utilisateur:
-{msg.text}
-''',
-            "stream": False
-        }
+            "model": "mistralai/mistral-7b-instruct",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "Tu es Stargate, une IA futuriste intelligente et utile."
+                },
+                {
+                    "role": "user",
+                    "content": msg.text
+                }
+            ]
+        },
+        timeout=60
     )
 
     data = response.json()
 
     return {
-        "reply": data["response"]
+        "reply": data["choices"][0]["message"]["content"]
     }
